@@ -66,16 +66,25 @@ public class AutomationRuleService {
         }
 
         if (amount > 0) {
-            Transaction transaction = Transaction.builder()
-                    .amount(amount)
-                    .type(rule.getType())
-                    .date(LocalDate.now())
-                    .description("Automated: " + rule.getName())
-                    .category(rule.getCategory())
-                    .user(rule.getUser())
-                    .automatic(true)
-                    .automationRule(rule)
-                    .build();
+            LocalDate now = LocalDate.now();
+            LocalDate startOfMonth = now.withDayOfMonth(1);
+            LocalDate endOfMonth = now.withDayOfMonth(now.lengthOfMonth());
+
+            Transaction transaction = transactionRepository
+                    .findFirstByAutomationRuleAndDateBetween(rule, startOfMonth, endOfMonth)
+                    .orElse(new Transaction());
+
+            transaction.setAmount(amount);
+            transaction.setType(rule.getType());
+            if (transaction.getId() == null) {
+                transaction.setDate(now);
+                transaction.setAutomatic(true);
+                transaction.setAutomationRule(rule);
+                transaction.setUser(rule.getUser());
+            }
+            transaction.setDescription("Automated: " + rule.getName());
+            transaction.setCategory(rule.getCategory());
+            
             transactionRepository.save(transaction);
         }
     }
