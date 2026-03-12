@@ -50,6 +50,7 @@ export interface Budget {
     month: number;
     year: number;
     limitAmount: number;
+    percentageOfIncome?: number;
     automatic: boolean;
 }
 
@@ -75,5 +76,6 @@ export interface DashboardOverview {
     recentTransactions: Transaction[];
     budgetStatuses: BudgetStatus[];
     monthlyReport: ReportDto;
+    yearlyReport: ReportDto;
     categoryReport: ReportDto;
 }

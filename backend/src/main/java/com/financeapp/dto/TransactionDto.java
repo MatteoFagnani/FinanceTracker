@@ -15,7 +15,6 @@ public class TransactionDto {
     @Min(value = 0, message = "Amount must be positive")
     private Double amount;
 
-    @NotNull(message = "Transaction type is required")
     private TransactionType type;
 
     @NotNull(message = "Date is required")

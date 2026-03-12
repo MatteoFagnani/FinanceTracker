@@ -4,9 +4,7 @@ import com.financeapp.dto.BudgetStatusDto;
 import com.financeapp.dto.DashboardOverviewDto;
 import com.financeapp.dto.ReportDto;
 import com.financeapp.dto.TransactionDto;
-import com.financeapp.model.TransactionType;
 import com.financeapp.model.User;
-import com.financeapp.service.pattern.state.BudgetContext;
 import com.financeapp.service.pattern.strategy.ReportContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -43,48 +41,28 @@ public class DashboardService {
         ReportDto categoryReport = reportContext.getStrategy("CATEGORY")
                 .generateReport(user, startOfMonth, endOfMonth);
 
-        // 4. Calculate total income/expenses exactly from the current month
+        // 4. Generate Yearly Report using Strategy Pattern
+        LocalDate startOfYear = now.withDayOfYear(1);
+        LocalDate endOfYear = now.withMonth(12).withDayOfMonth(31);
+        ReportDto yearlyReport = reportContext.getStrategy("YEARLY")
+                .generateReport(user, startOfYear, endOfYear);
+
+        // 5. Calculate total income/expenses exactly from the current month
         double totalIncome = monthlyReport.getTotalIncome();
         double totalExpense = monthlyReport.getTotalExpense();
 
-        // 5. Calculate Budgets and verify states using State Pattern
-        BudgetContext budgetContext = new BudgetContext();
+        // 6. Calculate Budgets and verify states
         List<BudgetStatusDto> budgetStatuses = budgetService
-                .getBudgetsByMonthAndYear(user, now.getMonthValue(), now.getYear())
-                .stream()
-                .map(budget -> {
-                    // Filter transactions of this month for this category
-                    double currentSpending = allTransactions.stream()
-                            .filter(t -> t.getCategoryId().equals(budget.getCategoryId()) &&
-                                    t.getType() == TransactionType.EXPENSE &&
-                                    !t.getDate().isBefore(startOfMonth) &&
-                                    !t.getDate().isAfter(endOfMonth))
-                            .mapToDouble(TransactionDto::getAmount)
-                            .sum();
+                .getBudgetStatusesByMonthAndYear(user, now.getMonthValue(), now.getYear());
 
-                    double percentageUsed = (currentSpending / budget.getLimitAmount()) * 100;
-
-                    BudgetStatusDto statusDto = BudgetStatusDto.builder()
-                            .budget(budget)
-                            .currentSpending(currentSpending)
-                            .remainingAmount(budget.getLimitAmount() - currentSpending)
-                            .percentageUsed(percentageUsed)
-                            .build();
-
-                    // Apply State Pattern
-                    budgetContext.applyState(statusDto);
-
-                    return statusDto;
-                })
-                .collect(Collectors.toList());
-
-        // 6. Assemble everything using the Builder Pattern
+        // 7. Assemble everything using the Builder Pattern
         return new DashboardOverviewDto.Builder()
                 .totalIncome(totalIncome)
                 .totalExpense(totalExpense)
                 .recentTransactions(recentTransactions)
                 .budgetStatuses(budgetStatuses)
                 .monthlyReport(monthlyReport)
+                .yearlyReport(yearlyReport)
                 .categoryReport(categoryReport)
                 .build();
     }

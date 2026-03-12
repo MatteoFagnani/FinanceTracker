@@ -10,7 +10,16 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BudgetStatusDto {
-    private BudgetDto budget;
+    private Long id;
+    private Long categoryId;
+    private String categoryName;
+    private String categoryColor;
+    private Integer month;
+    private Integer year;
+    private Double limitAmount;
+    private Double percentageOfIncome;
+    private boolean automatic;
+    
     private Double currentSpending;
     private Double remainingAmount;
     private Double percentageUsed;

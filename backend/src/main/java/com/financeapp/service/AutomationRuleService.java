@@ -5,13 +5,16 @@ import com.financeapp.exception.ResourceNotFoundException;
 import com.financeapp.mapper.AutomationRuleMapper;
 import com.financeapp.model.AutomationRule;
 import com.financeapp.model.Category;
+import com.financeapp.model.Transaction;
 import com.financeapp.model.TransactionType;
 import com.financeapp.model.User;
 import com.financeapp.repository.AutomationRuleRepository;
+import com.financeapp.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,6 +25,7 @@ public class AutomationRuleService {
     private final AutomationRuleRepository ruleRepository;
     private final AutomationRuleMapper ruleMapper;
     private final CategoryService categoryService;
+    private final TransactionRepository transactionRepository;
 
     public List<AutomationRuleDto> getAllRules(User user) {
         return ruleRepository.findByUserId(user.getId())
@@ -43,7 +47,45 @@ public class AutomationRuleService {
         rule.setCategory(category);
 
         AutomationRule savedRule = ruleRepository.save(rule);
+        
+        // Execute rule immediately if the day matches
+        if (rule.getExecutionDay() != null && rule.getExecutionDay() == LocalDate.now().getDayOfMonth()) {
+            executeRule(savedRule);
+        }
+        
         return ruleMapper.toDto(savedRule);
+    }
+
+    public void executeRule(AutomationRule rule) {
+        double amount = 0;
+        if (rule.getFixedAmount() != null) {
+            amount = rule.getFixedAmount();
+        } else if (rule.getPercentageOfIncome() != null) {
+            LocalDate now = LocalDate.now();
+            LocalDate startOfMonth = now.withDayOfMonth(1);
+            
+            Double totalIncome = transactionRepository.findByUserIdAndDateBetweenOrderByDateDesc(
+                    rule.getUser().getId(), startOfMonth, now)
+                    .stream()
+                    .filter(t -> t.getType() == TransactionType.INCOME)
+                    .mapToDouble(t -> t.getAmount())
+                    .sum();
+            
+            amount = totalIncome * (rule.getPercentageOfIncome() / 100.0);
+        }
+
+        if (amount > 0) {
+            Transaction transaction = Transaction.builder()
+                    .amount(amount)
+                    .type(rule.getType())
+                    .date(LocalDate.now())
+                    .description("Automated: " + rule.getName())
+                    .category(rule.getCategory())
+                    .user(rule.getUser())
+                    .automatic(true)
+                    .build();
+            transactionRepository.save(transaction);
+        }
     }
 
     public AutomationRuleDto updateRule(User user, Long id, AutomationRuleDto ruleDto) {
@@ -58,6 +100,12 @@ public class AutomationRuleService {
         rule.setFixedAmount(ruleDto.getFixedAmount());
 
         AutomationRule updatedRule = ruleRepository.save(rule);
+        
+        // Execute rule immediately if the day matches
+        if (updatedRule.getExecutionDay() != null && updatedRule.getExecutionDay() == LocalDate.now().getDayOfMonth()) {
+            executeRule(updatedRule);
+        }
+        
         return ruleMapper.toDto(updatedRule);
     }
 

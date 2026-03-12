@@ -12,6 +12,7 @@ public class DashboardOverviewDto {
     private final List<TransactionDto> recentTransactions;
     private final List<BudgetStatusDto> budgetStatuses;
     private final ReportDto monthlyReport;
+    private final ReportDto yearlyReport;
     private final ReportDto categoryReport;
 
     private DashboardOverviewDto(Builder builder) {
@@ -21,6 +22,7 @@ public class DashboardOverviewDto {
         this.recentTransactions = builder.recentTransactions;
         this.budgetStatuses = builder.budgetStatuses;
         this.monthlyReport = builder.monthlyReport;
+        this.yearlyReport = builder.yearlyReport;
         this.categoryReport = builder.categoryReport;
     }
 
@@ -30,6 +32,7 @@ public class DashboardOverviewDto {
         private List<TransactionDto> recentTransactions;
         private List<BudgetStatusDto> budgetStatuses;
         private ReportDto monthlyReport;
+        private ReportDto yearlyReport;
         private ReportDto categoryReport;
 
         public Builder totalIncome(Double totalIncome) {
@@ -54,6 +57,11 @@ public class DashboardOverviewDto {
 
         public Builder monthlyReport(ReportDto monthlyReport) {
             this.monthlyReport = monthlyReport;
+            return this;
+        }
+
+        public Builder yearlyReport(ReportDto yearlyReport) {
+            this.yearlyReport = yearlyReport;
             return this;
         }
 

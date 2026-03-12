@@ -31,6 +31,9 @@ public class Budget {
     @Column(nullable = false)
     private Double limitAmount;
 
+    @Column(name = "percentage_of_income")
+    private Double percentageOfIncome;
+
     @Column(nullable = false)
     private boolean automatic = false;
 

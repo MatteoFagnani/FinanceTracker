@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import com.financeapp.dto.BudgetStatusDto;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -20,7 +21,7 @@ public class BudgetController extends BaseController {
     private final BudgetService budgetService;
 
     @GetMapping
-    public ResponseEntity<List<BudgetDto>> getBudgets(
+    public ResponseEntity<List<BudgetStatusDto>> getBudgets(
             Authentication authentication,
             @RequestParam(required = false) Integer month,
             @RequestParam(required = false) Integer year) {
@@ -28,7 +29,7 @@ public class BudgetController extends BaseController {
         int rMonth = month != null ? month : LocalDate.now().getMonthValue();
         int rYear = year != null ? year : LocalDate.now().getYear();
 
-        return ResponseEntity.ok(budgetService.getBudgetsByMonthAndYear(getCurrentUser(authentication), rMonth, rYear));
+        return ResponseEntity.ok(budgetService.getBudgetStatusesByMonthAndYear(getCurrentUser(authentication), rMonth, rYear));
     }
 
     @GetMapping("/{id}")

@@ -9,13 +9,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.time.format.TextStyle;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
-public class MonthlyReportStrategy implements ReportStrategy {
+public class YearlyReportStrategy implements ReportStrategy {
 
     private final TransactionRepository transactionRepository;
 
@@ -27,44 +29,37 @@ public class MonthlyReportStrategy implements ReportStrategy {
         double totalIncome = 0.0;
         double totalExpense = 0.0;
 
-        // DataPoints: Map "Day" -> "Net Balance"
-        Map<String, Double> dailyBalances = new LinkedHashMap<>();
+        // DataPoints: Map "Month" -> "Net Balance"
+        Map<String, Double> monthlyBalances = new LinkedHashMap<>();
 
-        // Initialize map
-        LocalDate currentDate = startDate;
-        while (!currentDate.isAfter(endDate)) {
-            dailyBalances.put(currentDate.toString(), 0.0);
-            currentDate = currentDate.plusDays(1);
+        // Initialize map with all 12 months using the given year
+        int year = startDate.getYear();
+        for (int i = 1; i <= 12; i++) {
+            String monthName = LocalDate.of(year, i, 1)
+                    .getMonth()
+                    .getDisplayName(TextStyle.SHORT, Locale.ITALIAN);
+            monthlyBalances.put(monthName, 0.0);
         }
 
         for (Transaction t : transactions) {
-            String day = t.getDate().toString();
+            String monthName = t.getDate().getMonth().getDisplayName(TextStyle.SHORT, Locale.ITALIAN);
             double amount = t.getAmount();
 
-            if (dailyBalances.containsKey(day)) {
-                if (t.getType() == TransactionType.INCOME) {
-                    totalIncome += amount;
-                    dailyBalances.put(day, dailyBalances.get(day) + amount);
-                } else {
-                    totalExpense += amount;
-                    dailyBalances.put(day, dailyBalances.get(day) - amount);
-                }
+            if (t.getType() == TransactionType.INCOME) {
+                totalIncome += amount;
+                monthlyBalances.put(monthName, monthlyBalances.getOrDefault(monthName, 0.0) + amount);
+            } else {
+                totalExpense += amount;
+                monthlyBalances.put(monthName, monthlyBalances.getOrDefault(monthName, 0.0) - amount);
             }
         }
 
-        // Apply cumulative logic
-        double runningBalance = 0.0;
-        for (Map.Entry<String, Double> entry : dailyBalances.entrySet()) {
-            runningBalance += entry.getValue();
-            entry.setValue(runningBalance);
-        }
-
         return ReportDto.builder()
-                .title("Monthly Financial Report")
+                .title("Annual Financial Report " + year)
                 .totalIncome(totalIncome)
                 .totalExpense(totalExpense)
                 .netBalance(totalIncome - totalExpense)
-                .dataPoints(dailyBalances)
+                .dataPoints(monthlyBalances)
                 .build();
     }
 }

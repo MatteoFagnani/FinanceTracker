@@ -28,5 +28,7 @@ public class BudgetDto {
     @Min(value = 0, message = "Limit amount must be positive")
     private Double limitAmount;
 
+    private Double percentageOfIncome;
+
     private boolean automatic;
 }
