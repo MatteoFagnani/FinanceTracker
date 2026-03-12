@@ -29,4 +29,6 @@ public class TransactionDto {
     private String categoryColor;
 
     private boolean automatic;
+
+    private Long automationId;
 }

@@ -29,11 +29,11 @@ public class AutomationRule {
     @Column(name = "execution_day")
     private Integer executionDay;
 
-    @Column(name = "percentage_of_income")
-    private Double percentageOfIncome;
+    @Column(name = "monthly_amount")
+    private Double monthlyAmount;
 
-    @Column(name = "fixed_amount")
-    private Double fixedAmount;
+    @Column(name = "annual_amount")
+    private Double annualAmount;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

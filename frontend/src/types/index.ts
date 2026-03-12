@@ -38,8 +38,8 @@ export interface AutomationRule {
     categoryId: number;
     categoryName: string;
     executionDay: number;
-    percentageOfIncome?: number;
-    fixedAmount?: number;
+    monthlyAmount?: number;
+    annualAmount?: number;
 }
 
 export interface Budget {

@@ -26,10 +26,9 @@ public class AutomationRuleDto {
     @Max(value = 31, message = "Execution day must be between 1 and 31")
     private Integer executionDay;
 
-    @Min(value = 0, message = "Percentage must be positive")
-    @Max(value = 100, message = "Percentage cannot exceed 100")
-    private Double percentageOfIncome;
+    @Min(value = 0, message = "Monthly amount must be positive")
+    private Double monthlyAmount;
 
-    @Min(value = 0, message = "Fixed amount must be positive")
-    private Double fixedAmount;
+    @Min(value = 0, message = "Annual amount must be positive")
+    private Double annualAmount;
 }

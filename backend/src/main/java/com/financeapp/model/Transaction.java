@@ -39,4 +39,8 @@ public class Transaction {
 
     @Column(nullable = false)
     private boolean automatic = false;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "automation_rule_id")
+    private AutomationRule automationRule;
 }

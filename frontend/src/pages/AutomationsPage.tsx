@@ -16,7 +16,7 @@ export default function AutomationsPage() {
     const [error, setError] = useState('');
     const [form, setForm] = useState({
         name: '', type: 'EXPENSE' as TransactionType, categoryId: '',
-        executionDay: '1', percentageOfIncome: '', fixedAmount: '',
+        executionDay: '1', monthlyAmount: '', annualAmount: '',
     });
 
     const load = () => {
@@ -30,7 +30,7 @@ export default function AutomationsPage() {
 
     const openNew = () => {
         setEditing(null);
-        setForm({ name: '', type: 'EXPENSE', categoryId: '', executionDay: '1', percentageOfIncome: '', fixedAmount: '' });
+        setForm({ name: '', type: 'EXPENSE', categoryId: '', executionDay: '1', monthlyAmount: '', annualAmount: '' });
         setError('');
         setShowForm(true);
     };
@@ -40,8 +40,8 @@ export default function AutomationsPage() {
         setForm({
             name: r.name, type: r.type, categoryId: String(r.categoryId),
             executionDay: String(r.executionDay),
-            percentageOfIncome: r.percentageOfIncome != null ? String(r.percentageOfIncome) : '',
-            fixedAmount: r.fixedAmount != null ? String(r.fixedAmount) : '',
+            monthlyAmount: r.monthlyAmount != null ? String(r.monthlyAmount) : '',
+            annualAmount: r.annualAmount != null ? String(r.annualAmount) : '',
         });
         setError('');
         setShowForm(true);
@@ -56,8 +56,8 @@ export default function AutomationsPage() {
                 ...form,
                 categoryId: parseInt(form.categoryId),
                 executionDay: parseInt(form.executionDay),
-                percentageOfIncome: form.percentageOfIncome ? parseFloat(form.percentageOfIncome) : null,
-                fixedAmount: form.fixedAmount ? parseFloat(form.fixedAmount) : null,
+                monthlyAmount: form.monthlyAmount ? parseFloat(form.monthlyAmount) : null,
+                annualAmount: form.annualAmount ? parseFloat(form.annualAmount) : null,
             };
             if (editing) {
                 await automationRuleService.update(editing.id, payload);
@@ -163,12 +163,9 @@ export default function AutomationsPage() {
                             </div>
 
                             <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
-                                <span className="text-xs text-gray-400">Importo</span>
+                                <span className="text-xs text-gray-400">Importo (Mensile)</span>
                                 <span className="text-base font-bold text-gray-800">
-                                    {rule.percentageOfIncome != null
-                                        ? `${rule.percentageOfIncome}% del reddito`
-                                        : fmt(rule.fixedAmount ?? 0)
-                                    }
+                                    {fmt(rule.monthlyAmount ?? (rule.annualAmount ? rule.annualAmount / 12 : 0))}
                                 </span>
                             </div>
                         </div>
@@ -259,29 +256,39 @@ export default function AutomationsPage() {
 
                                 <div>
                                     <label className={labelClass}>Importo</label>
-                                    <p className="text-xs text-gray-400 mb-2">Compila uno solo tra importo fisso o percentuale del reddito</p>
+                                    <p className="text-xs text-gray-400 mb-2">Compila uno solo tra mensile o annuale (l'altro verrà calcolato automaticamente se lasci vuoto)</p>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
-                                            <p className="text-xs text-gray-500 mb-1.5">Importo fisso (€)</p>
+                                            <p className="text-xs text-gray-500 mb-1.5">Importo Mensile (€)</p>
                                             <input
                                                 type="number"
-                                                value={form.fixedAmount}
-                                                onChange={(e) => setForm({ ...form, fixedAmount: e.target.value, percentageOfIncome: '' })}
+                                                value={form.monthlyAmount}
+                                                onChange={(e) => setForm({ ...form, monthlyAmount: e.target.value, annualAmount: '' })}
                                                 min="0" step="0.01"
                                                 placeholder="0.00"
                                                 className={inputClass}
                                             />
+                                            {form.annualAmount && !form.monthlyAmount && (
+                                                <p className="text-[10px] text-gray-400 mt-1">
+                                                    Circa {fmt(parseFloat(form.annualAmount) / 12)} / mese
+                                                </p>
+                                            )}
                                         </div>
                                         <div>
-                                            <p className="text-xs text-gray-500 mb-1.5">% del reddito</p>
+                                            <p className="text-xs text-gray-500 mb-1.5">Importo Annuale (€)</p>
                                             <input
                                                 type="number"
-                                                value={form.percentageOfIncome}
-                                                onChange={(e) => setForm({ ...form, percentageOfIncome: e.target.value, fixedAmount: '' })}
-                                                min="0" max="100" step="0.1"
-                                                placeholder="0.0"
+                                                value={form.annualAmount}
+                                                onChange={(e) => setForm({ ...form, annualAmount: e.target.value, monthlyAmount: '' })}
+                                                min="0" step="0.01"
+                                                placeholder="0.00"
                                                 className={inputClass}
                                             />
+                                            {form.monthlyAmount && !form.annualAmount && (
+                                                <p className="text-[10px] text-gray-400 mt-1">
+                                                    Circa {fmt(parseFloat(form.monthlyAmount) * 12)} / anno
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
                                 </div>

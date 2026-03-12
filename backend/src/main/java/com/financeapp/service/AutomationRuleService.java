@@ -42,14 +42,17 @@ public class AutomationRuleService {
     public AutomationRuleDto createRule(User user, AutomationRuleDto ruleDto) {
         Category category = categoryService.getCategoryAndVerifyOwner(ruleDto.getCategoryId(), user);
 
+        validateAmounts(ruleDto);
+        calculateMonthlyAmountIfNecessary(ruleDto);
+
         AutomationRule rule = ruleMapper.toEntity(ruleDto);
         rule.setUser(user);
         rule.setCategory(category);
 
         AutomationRule savedRule = ruleRepository.save(rule);
         
-        // Execute rule immediately if the day matches
-        if (rule.getExecutionDay() != null && rule.getExecutionDay() == LocalDate.now().getDayOfMonth()) {
+        // Execute rule immediately if the day is less than or equal to today
+        if (rule.getExecutionDay() != null && rule.getExecutionDay() <= LocalDate.now().getDayOfMonth()) {
             executeRule(savedRule);
         }
         
@@ -58,20 +61,8 @@ public class AutomationRuleService {
 
     public void executeRule(AutomationRule rule) {
         double amount = 0;
-        if (rule.getFixedAmount() != null) {
-            amount = rule.getFixedAmount();
-        } else if (rule.getPercentageOfIncome() != null) {
-            LocalDate now = LocalDate.now();
-            LocalDate startOfMonth = now.withDayOfMonth(1);
-            
-            Double totalIncome = transactionRepository.findByUserIdAndDateBetweenOrderByDateDesc(
-                    rule.getUser().getId(), startOfMonth, now)
-                    .stream()
-                    .filter(t -> t.getType() == TransactionType.INCOME)
-                    .mapToDouble(t -> t.getAmount())
-                    .sum();
-            
-            amount = totalIncome * (rule.getPercentageOfIncome() / 100.0);
+        if (rule.getMonthlyAmount() != null) {
+            amount = rule.getMonthlyAmount();
         }
 
         if (amount > 0) {
@@ -83,6 +74,7 @@ public class AutomationRuleService {
                     .category(rule.getCategory())
                     .user(rule.getUser())
                     .automatic(true)
+                    .automationRule(rule)
                     .build();
             transactionRepository.save(transaction);
         }
@@ -92,17 +84,20 @@ public class AutomationRuleService {
         AutomationRule rule = getRuleAndVerifyOwner(id, user);
         Category category = categoryService.getCategoryAndVerifyOwner(ruleDto.getCategoryId(), user);
 
+        validateAmounts(ruleDto);
+        calculateMonthlyAmountIfNecessary(ruleDto);
+
         rule.setName(ruleDto.getName());
         rule.setType(ruleDto.getType());
         rule.setCategory(category);
         rule.setExecutionDay(ruleDto.getExecutionDay());
-        rule.setPercentageOfIncome(ruleDto.getPercentageOfIncome());
-        rule.setFixedAmount(ruleDto.getFixedAmount());
+        rule.setMonthlyAmount(ruleDto.getMonthlyAmount());
+        rule.setAnnualAmount(ruleDto.getAnnualAmount());
 
         AutomationRule updatedRule = ruleRepository.save(rule);
         
-        // Execute rule immediately if the day matches
-        if (updatedRule.getExecutionDay() != null && updatedRule.getExecutionDay() == LocalDate.now().getDayOfMonth()) {
+        // Execute rule immediately if the day is less than or equal to today
+        if (updatedRule.getExecutionDay() != null && updatedRule.getExecutionDay() <= LocalDate.now().getDayOfMonth()) {
             executeRule(updatedRule);
         }
         
@@ -123,5 +118,20 @@ public class AutomationRuleService {
         }
 
         return rule;
+    }
+
+    private void validateAmounts(AutomationRuleDto ruleDto) {
+        if (ruleDto.getMonthlyAmount() != null && ruleDto.getAnnualAmount() != null) {
+            throw new IllegalArgumentException("Only one between monthlyAmount and annualAmount can be set.");
+        }
+        if (ruleDto.getMonthlyAmount() == null && ruleDto.getAnnualAmount() == null) {
+            throw new IllegalArgumentException("Either monthlyAmount or annualAmount must be provided.");
+        }
+    }
+
+    private void calculateMonthlyAmountIfNecessary(AutomationRuleDto ruleDto) {
+        if (ruleDto.getAnnualAmount() != null) {
+            ruleDto.setMonthlyAmount(ruleDto.getAnnualAmount() / 12.0);
+        }
     }
 }
