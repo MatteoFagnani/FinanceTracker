@@ -23,5 +23,6 @@ public class BudgetStatusDto {
     private Double currentSpending;
     private Double remainingAmount;
     private Double percentageUsed;
+    private boolean overridden;
     private String status;
 }

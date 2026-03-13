@@ -2,6 +2,7 @@ package com.financeapp.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import java.util.List;
 
 @Entity
 @Getter
@@ -10,7 +11,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(uniqueConstraints = {
-        @UniqueConstraint(columnNames = { "user_id", "category_id", "month", "year" })
+        @UniqueConstraint(columnNames = { "user_id", "category_id" })
 })
 public class Budget {
 
@@ -22,13 +23,8 @@ public class Budget {
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
-    @Column(nullable = false)
-    private Integer month;
 
-    @Column(nullable = false)
-    private Integer year;
-
-    @Column(nullable = false)
+    @Column(nullable = true)
     private Double limitAmount;
 
     @Column(name = "percentage_of_income")
@@ -40,4 +36,7 @@ public class Budget {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @OneToMany(mappedBy = "budget", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<BudgetOverride> overrides;
 }

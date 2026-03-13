@@ -50,12 +50,12 @@ public class AutomationRuleService {
         rule.setCategory(category);
 
         AutomationRule savedRule = ruleRepository.save(rule);
-        
+
         // Execute rule immediately if the day is less than or equal to today
         if (rule.getExecutionDay() != null && rule.getExecutionDay() <= LocalDate.now().getDayOfMonth()) {
             executeRule(savedRule);
         }
-        
+
         return ruleMapper.toDto(savedRule);
     }
 
@@ -82,9 +82,9 @@ public class AutomationRuleService {
                 transaction.setAutomationRule(rule);
                 transaction.setUser(rule.getUser());
             }
-            transaction.setDescription("Automated: " + rule.getName());
+            transaction.setDescription("Automatico: " + rule.getName());
             transaction.setCategory(rule.getCategory());
-            
+
             transactionRepository.save(transaction);
         }
     }
@@ -104,12 +104,12 @@ public class AutomationRuleService {
         rule.setAnnualAmount(ruleDto.getAnnualAmount());
 
         AutomationRule updatedRule = ruleRepository.save(rule);
-        
+
         // Execute rule immediately if the day is less than or equal to today
         if (updatedRule.getExecutionDay() != null && updatedRule.getExecutionDay() <= LocalDate.now().getDayOfMonth()) {
             executeRule(updatedRule);
         }
-        
+
         return ruleMapper.toDto(updatedRule);
     }
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Plus, ChevronDown } from 'lucide-react';
-import type { Budget } from '../types';
+import type { BudgetStatus } from '../types';
 import BudgetList from '../components/budgets/BudgetList';
 import BudgetForm from '../components/budgets/BudgetForm';
 import { useBudgets } from '../hooks/useBudgets';
@@ -15,10 +15,10 @@ export default function BudgetsPage() {
     const { budgets, categories, loading, saving, error, setError, loadData, saveBudget, deleteBudget } = useBudgets(month, year);
 
     const [showForm, setShowForm] = useState(false);
-    const [editing, setEditing] = useState<Budget | null>(null);
+    const [editing, setEditing] = useState<BudgetStatus | null>(null);
     const [formData, setFormData] = useState({
         categoryId: '', limitAmount: '', percentageOfIncome: '',
-        month: String(month), year: String(year), automatic: false,
+        month: String(month), year: String(year), automatic: false, type: 'PERMANENT' as 'PERMANENT' | 'TEMPORARY'
     });
 
     useEffect(() => {
@@ -27,24 +27,27 @@ export default function BudgetsPage() {
 
     const openNew = () => {
         setEditing(null);
-        setFormData({ categoryId: '', limitAmount: '', percentageOfIncome: '', month: String(month), year: String(year), automatic: false });
+        setFormData({ categoryId: '', limitAmount: '', percentageOfIncome: '', month: String(month), year: String(year), automatic: false, type: 'PERMANENT' });
         setError('');
         setShowForm(true);
     };
 
-    const openEdit = (b: Budget) => {
+    const openEdit = (b: BudgetStatus) => {
         setEditing(b);
         setFormData({
             categoryId: String(b.categoryId), 
             limitAmount: b.limitAmount ? String(b.limitAmount) : '',
             percentageOfIncome: b.percentageOfIncome ? String(b.percentageOfIncome) : '',
-            month: String(b.month), year: String(b.year), automatic: b.automatic,
+            month: String(b.month), 
+            year: String(b.year), 
+            automatic: b.automatic, 
+            type: b.overridden ? 'TEMPORARY' : 'PERMANENT'
         });
         setError('');
         setShowForm(true);
     };
 
-    const handleSave = async (form: { categoryId: string; limitAmount: string; percentageOfIncome: string; month: string; year: string; automatic: boolean }) => {
+    const handleSave = async (form: { categoryId: string; limitAmount: string; percentageOfIncome: string; automatic: boolean; type?: 'PERMANENT' | 'TEMPORARY'; month?: string; year?: string }) => {
         const success = await saveBudget(editing ? editing.id : null, form);
         if (success) {
             setShowForm(false);

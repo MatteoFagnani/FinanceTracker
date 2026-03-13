@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronDown, X, Loader2 } from 'lucide-react';
-import type { Budget, Category } from '../../types';
+import type { BudgetStatus, Category } from '../../types';
 
 interface BudgetFormProps {
-    editing: Budget | null;
+    editing: BudgetStatus | null;
     categories: Category[];
-    initialData: { categoryId: string; limitAmount: string; percentageOfIncome: string; month: string; year: string; automatic: boolean };
+    initialData: { categoryId: string; limitAmount: string; percentageOfIncome: string; automatic: boolean; type?: 'PERMANENT' | 'TEMPORARY'; month?: string; year?: string };
     saving: boolean;
     error: string;
-    onSave: (form: { categoryId: string; limitAmount: string; percentageOfIncome: string; month: string; year: string; automatic: boolean }) => void;
+    onSave: (form: { categoryId: string; limitAmount: string; percentageOfIncome: string; automatic: boolean; type?: 'PERMANENT' | 'TEMPORARY'; month?: string; year?: string }) => void;
     onClose: () => void;
 }
 
@@ -116,7 +116,27 @@ export default function BudgetForm({ editing, categories, initialData, saving, e
                             )}
                         </div>
 
-                        {!editing && (
+                        {editing && (
+                            <div className="flex items-center gap-4 mb-3 mt-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setForm({ ...form, type: 'PERMANENT' })}
+                                    className={`flex-1 py-2 text-xs font-medium rounded-lg transition-colors border ${form.type === 'PERMANENT' ? 'bg-violet-50 border-violet-200 text-violet-700' : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100'}`}
+                                >
+                                    Modifica Permanente
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setForm({ ...form, type: 'TEMPORARY' })}
+                                    className={`flex-1 py-2 text-xs font-medium rounded-lg transition-colors border ${form.type === 'TEMPORARY' ? 'bg-violet-50 border-violet-200 text-violet-700' : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100'}`}
+                                >
+                                    Modifica Temporanea
+                                </button>
+                            </div>
+                        )}
+
+
+                        {editing && form.type === 'TEMPORARY' && (
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className={labelClass}>Mese</label>

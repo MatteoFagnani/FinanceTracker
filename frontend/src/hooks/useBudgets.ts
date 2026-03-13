@@ -1,14 +1,6 @@
 import { useState, useCallback } from 'react';
 import { budgetService, categoryService } from '../services/services';
-import type { Budget, Category } from '../types';
-
-export type BudgetStatus = Budget & {
-    currentSpending: number;
-    remainingAmount: number;
-    percentageUsed: number;
-    status: string;
-    percentageOfIncome?: number;
-};
+import type { Category, BudgetStatus } from '../types';
 
 export function useBudgets(month: number, year: number) {
     const [budgets, setBudgets] = useState<BudgetStatus[]>([]);
@@ -34,21 +26,33 @@ export function useBudgets(month: number, year: number) {
         }
     }, [month, year]);
 
-    const saveBudget = async (id: number | null, form: { categoryId: string; limitAmount: string; percentageOfIncome?: string; month: string; year: string; automatic: boolean }) => {
+    const saveBudget = async (id: number | null, form: { categoryId: string; limitAmount: string; percentageOfIncome?: string; automatic: boolean; type?: 'PERMANENT' | 'TEMPORARY'; month?: string; year?: string }) => {
         setSaving(true);
         setError('');
         try {
-            const payload = {
-                ...form,
-                categoryId: parseInt(form.categoryId),
-                limitAmount: form.limitAmount ? parseFloat(form.limitAmount) : 0,
-                percentageOfIncome: form.percentageOfIncome ? parseFloat(form.percentageOfIncome) : null,
-                month: parseInt(form.month),
-                year: parseInt(form.year),
-            };
+            const limit = form.limitAmount ? parseFloat(form.limitAmount) : null;
+            const pct = form.percentageOfIncome ? parseFloat(form.percentageOfIncome) : null;
+            
             if (id) {
+                // Update
+                const payload = {
+                    categoryId: parseInt(form.categoryId),
+                    limitAmount: limit,
+                    percentageOfIncome: pct,
+                    automatic: form.automatic,
+                    type: form.type || 'PERMANENT',
+                    month: form.type === 'TEMPORARY' ? parseInt(form.month || String(month)) : undefined,
+                    year: form.type === 'TEMPORARY' ? parseInt(form.year || String(year)) : undefined
+                };
                 await budgetService.update(id, payload);
             } else {
+                // Create
+                const payload = {
+                    categoryId: parseInt(form.categoryId),
+                    limitAmount: limit,
+                    percentageOfIncome: pct,
+                    automatic: form.automatic
+                };
                 await budgetService.create(payload);
             }
             await loadData();

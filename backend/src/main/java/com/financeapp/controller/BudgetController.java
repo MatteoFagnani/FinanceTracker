@@ -51,7 +51,7 @@ public class BudgetController extends BaseController {
     public ResponseEntity<BudgetDto> updateBudget(
             Authentication authentication,
             @PathVariable Long id,
-            @Valid @RequestBody BudgetDto budgetDto) {
+            @Valid @RequestBody com.financeapp.dto.BudgetUpdateDto budgetDto) {
         return ResponseEntity.ok(budgetService.updateBudget(getCurrentUser(authentication), id, budgetDto));
     }
 

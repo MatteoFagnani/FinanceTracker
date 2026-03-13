@@ -1,6 +1,5 @@
 import { Pencil, Trash2 } from 'lucide-react';
-import type { BudgetStatus } from '../../hooks/useBudgets';
-import type { Budget } from '../../types';
+import type { BudgetStatus } from '../../types';
 import { ProgressBar } from '../UI';
 
 const MONTHS = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
@@ -12,7 +11,7 @@ interface BudgetListProps {
     month: number;
     year: number;
     onAdd: () => void;
-    onEdit: (b: Budget) => void;
+    onEdit: (b: BudgetStatus) => void;
     onDelete: (id: number) => void;
 }
 
@@ -54,7 +53,7 @@ export default function BudgetList({ budgets, loading, month, year, onAdd, onEdi
                         {/* Actions */}
                         <div className="absolute top-4 right-4 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button
-                                onClick={() => onEdit(b as Budget)}
+                                onClick={() => onEdit(b)}
                                 className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                             >
                                 <Pencil size={13} />

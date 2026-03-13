@@ -42,24 +42,8 @@ export interface AutomationRule {
     annualAmount?: number;
 }
 
-export interface Budget {
-    id: number;
-    categoryId: number;
-    categoryName: string;
-    categoryColor: string;
-    month: number;
-    year: number;
-    limitAmount: number;
-    percentageOfIncome?: number;
-    automatic: boolean;
-}
-
-export interface BudgetStatus extends Budget {
-    currentSpending: number;
-    remainingAmount: number;
-    percentageUsed: number;
-    status: 'OK' | 'WARNING' | 'EXCEEDED';
-}
+export type { Budget, BudgetStatus, BudgetUpdateRequest } from './budget';
+import type { BudgetStatus } from './budget';
 
 export interface ReportDto {
     title: string;
