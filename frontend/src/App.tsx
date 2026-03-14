@@ -8,6 +8,7 @@ import CategoriesPage from './pages/CategoriesPage';
 import TransactionsPage from './pages/TransactionsPage';
 import AutomationsPage from './pages/AutomationsPage';
 import BudgetsPage from './pages/BudgetsPage';
+import ProfilePage from './pages/ProfilePage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuthStore();
@@ -36,6 +37,7 @@ export default function App() {
                   <Route path="transactions" element={<TransactionsPage />} />
                   <Route path="automations" element={<AutomationsPage />} />
                   <Route path="budgets" element={<BudgetsPage />} />
+                  <Route path="profile" element={<ProfilePage />} />
                 </Routes>
               </Layout>
             </ProtectedRoute>

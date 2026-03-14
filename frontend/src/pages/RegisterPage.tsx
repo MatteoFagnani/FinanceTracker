@@ -40,12 +40,12 @@ export default function RegisterPage() {
 
                 {/* Logo */}
                 <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-10 h-10 bg-violet-600 rounded-xl mb-4">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                            <path d="M2 17l10 5 10-5" />
-                            <path d="M2 12l10 5 10-5" />
-                        </svg>
+                    <div className="inline-flex items-center justify-center w-16 h-16 mb-4">
+                        <img 
+                            src="/finance_logo.jpg" 
+                            alt="Logo" 
+                            className="w-full h-full object-contain rounded-xl" 
+                        />
                     </div>
                     <h1 className="text-xl font-semibold text-gray-900">Finance Tracker</h1>
                     <p className="text-sm text-gray-500 mt-1">Crea il tuo account</p>
