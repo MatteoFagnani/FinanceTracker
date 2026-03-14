@@ -23,6 +23,7 @@ public class AuthenticationService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final UserMapper userMapper;
+    private final CategoryService categoryService;
 
     public AuthResponse register(RegisterRequest request) {
         if (repository.existsByUsername(request.getUsername())) {
@@ -40,6 +41,10 @@ public class AuthenticationService {
                 .build();
 
         var savedUser = repository.save(user);
+        
+        // Seed default categories for the new user
+        categoryService.seedDefaultCategories(savedUser);
+
         var jwtToken = jwtService.generateToken(savedUser);
 
         return AuthResponse.builder()

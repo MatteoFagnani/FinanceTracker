@@ -34,12 +34,11 @@ public class CategoryReportStrategy implements ReportStrategy {
             String categoryName = t.getCategory().getName();
             double amount = t.getAmount();
 
-            categoryTotals.put(categoryName, categoryTotals.getOrDefault(categoryName, 0.0) + amount);
-
             if (t.getType() == TransactionType.INCOME) {
                 totalIncome += amount;
             } else {
                 totalExpense += amount;
+                categoryTotals.put(categoryName, categoryTotals.getOrDefault(categoryName, 0.0) + amount);
             }
         }
 

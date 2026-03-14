@@ -19,9 +19,13 @@ const labelClass = 'block text-sm font-medium text-gray-700 mb-1.5';
 
 export default function BudgetForm({ editing, categories, initialData, saving, error, onSave, onClose }: BudgetFormProps) {
     const [form, setForm] = useState(initialData);
+    const [mode, setMode] = useState<'AMOUNT' | 'PERCENTAGE'>(
+        initialData.percentageOfIncome ? 'PERCENTAGE' : 'AMOUNT'
+    );
 
     useEffect(() => {
         setForm(initialData);
+        setMode(initialData.percentageOfIncome ? 'PERCENTAGE' : 'AMOUNT');
     }, [initialData]);
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -75,21 +79,27 @@ export default function BudgetForm({ editing, categories, initialData, saving, e
                             <div className="flex items-center gap-4 mb-3">
                                 <button
                                     type="button"
-                                    onClick={() => setForm({ ...form, limitAmount: form.limitAmount || '0', percentageOfIncome: '' })}
-                                    className={`flex-1 py-2 text-xs font-medium rounded-lg transition-colors border ${!form.percentageOfIncome ? 'bg-violet-50 border-violet-200 text-violet-700' : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100'}`}
+                                    onClick={() => {
+                                        setMode('AMOUNT');
+                                        setForm({ ...form, limitAmount: form.limitAmount || '0', percentageOfIncome: '' });
+                                    }}
+                                    className={`flex-1 py-2 text-xs font-medium rounded-lg transition-colors border ${mode === 'AMOUNT' ? 'bg-violet-50 border-violet-200 text-violet-700' : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100'}`}
                                 >
                                     Importo Fisso
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={() => setForm({ ...form, limitAmount: '', percentageOfIncome: form.percentageOfIncome || '10' })}
-                                    className={`flex-1 py-2 text-xs font-medium rounded-lg transition-colors border ${form.percentageOfIncome ? 'bg-violet-50 border-violet-200 text-violet-700' : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100'}`}
+                                    onClick={() => {
+                                        setMode('PERCENTAGE');
+                                        setForm({ ...form, limitAmount: '', percentageOfIncome: form.percentageOfIncome || '10' });
+                                    }}
+                                    className={`flex-1 py-2 text-xs font-medium rounded-lg transition-colors border ${mode === 'PERCENTAGE' ? 'bg-violet-50 border-violet-200 text-violet-700' : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100'}`}
                                 >
                                     % delle Entrate
                                 </button>
                             </div>
 
-                            {form.percentageOfIncome ? (
+                            {mode === 'PERCENTAGE' ? (
                                 <div>
                                     <label className={labelClass}>Percentuale delle entrate (%)</label>
                                     <input
