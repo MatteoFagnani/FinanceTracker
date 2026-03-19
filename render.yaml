@@ -10,7 +10,7 @@ services:
     name: financetracker-backend
     env: docker
     dockerContext: ./backend
-    dockerfile: Dockerfile
+    dockerfilePath: Dockerfile
     plan: free
     healthCheckPath: /swagger-ui.html
     envVars:
@@ -48,5 +48,5 @@ services:
       - key: VITE_API_URL
         fromService:
           name: financetracker-backend
-          property: host
+          property: url
         suffix: /api/v1
