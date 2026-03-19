@@ -9,7 +9,7 @@ services:
     name: financetracker-backend
     env: docker
     dockerContext: ./backend
-    dockerfilePath: Dockerfile
+    dockerfilePath: backend/Dockerfile
     plan: free
     healthCheckPath: /swagger-ui.html
     envVars:
