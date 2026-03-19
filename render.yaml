@@ -37,7 +37,7 @@ services:
         generateValue: true
 
   # 2. Frontend Service (Static Site)
-  - type: static
+  - type: static_site
     name: financetracker-frontend
     buildCommand: cd frontend && npm install && npm run build
     staticPublishPath: ./frontend/dist
