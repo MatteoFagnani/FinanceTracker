@@ -1,0 +1,53 @@
+services:
+  # 1. Database PostgreSQL
+  - type: database
+    name: financetracker-db
+    databaseName: finance_tracker
+    user: postgres
+    plan: free
+
+  # 2. Backend Service (Docker)
+  - type: web
+    name: financetracker-backend
+    runtime: docker
+    dockerContext: ./backend
+    dockerfile: Dockerfile
+    plan: free
+    healthCheckPath: /swagger-ui.html # Simplest way to check if Spring Boot is up
+    envVars:
+      - key: DB_HOST
+        fromDatabase:
+          name: financetracker-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: financetracker-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: financetracker-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: financetracker-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: financetracker-db
+          property: password
+      - key: JWT_SECRET
+        generateValue: true # Generates a 32-character random string
+
+  # 3. Frontend Service (Static Site)
+  - type: web
+    name: financetracker-frontend
+    runtime: static
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: ./frontend/dist
+    plan: free
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          name: financetracker-backend
+          property: host
+        suffix: /api/v1
