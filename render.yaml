@@ -36,7 +36,7 @@ services:
       - key: JWT_SECRET
         generateValue: true
       - key: PORT
-        value: 8080
+        value: 10000
 
   # 2. Frontend Service (Static Site)
   - type: web
