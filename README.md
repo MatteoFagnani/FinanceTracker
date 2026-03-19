@@ -83,10 +83,8 @@ cd FinanceTracker
 ```bash
 docker-compose up --build
 ```
-L'applicazione sarà disponibile ai seguenti indirizzi:
+L'applicazione sarà disponibile al seguente indirizzo:
 - **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:8080
-- **Swagger UI**: http://localhost:8080/swagger-ui.html
 
 ### 3. Sviluppo Locale
 
