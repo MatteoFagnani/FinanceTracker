@@ -11,7 +11,7 @@ services:
     dockerContext: ./backend
     dockerfilePath: backend/Dockerfile
     plan: free
-    healthCheckPath: /swagger-ui.html
+    healthCheckPath: /api-docs
     envVars:
       - key: DB_HOST
         fromDatabase:
