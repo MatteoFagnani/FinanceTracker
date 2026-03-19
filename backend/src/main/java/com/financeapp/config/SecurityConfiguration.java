@@ -52,11 +52,11 @@ public class SecurityConfiguration {
         @Bean
         public CorsConfigurationSource corsConfigurationSource() {
                 CorsConfiguration configuration = new CorsConfiguration();
-                configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://localhost:3000")); // Vite
-                                                                                                                  // default
-                                                                                                                  // and
-                                                                                                                  // Docker
-                                                                                                                  // port
+                configuration.setAllowedOriginPatterns(Arrays.asList(
+                                "http://localhost:5173",
+                                "http://localhost:3000",
+                                "https://*.onrender.com"
+                ));
                 configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
                 configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
                 configuration.setAllowCredentials(true);
