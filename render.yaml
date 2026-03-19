@@ -1,7 +1,6 @@
 databases:
   - name: financetracker-db
     databaseName: finance_tracker
-    user: postgres
     plan: free
 
 services:
@@ -47,6 +46,7 @@ services:
     envVars:
       - key: VITE_API_URL
         fromService:
+          type: web
           name: financetracker-backend
-          property: url
+          property: host
         suffix: /api/v1
