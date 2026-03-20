@@ -1,8 +1,8 @@
 # FinanceTracker
 
-[![Deploy Status](https://img.shields.io/badge/Deploy-Live-success)](https://financetracker-frontend-f9cy.onrender.com/)
+[![Deploy Status](https://img.shields.io/badge/Deploy-Live-success)](https://financetracker-frontend-4t02.onrender.com/)
 
-**Link dell'applicazione live:** [https://financetracker-frontend-f9cy.onrender.com/](https://financetracker-frontend-f9cy.onrender.com/)
+**Link dell'applicazione live:** [https://financetracker-frontend-4t02.onrender.com/](https://financetracker-frontend-4t02.onrender.com/)
 
 Un'applicazione web completa per la gestione delle finanze personali, con tracciamento di entrate e uscite, gestione budget e report dettagliati.
 
