@@ -55,6 +55,7 @@ public class SecurityConfiguration {
                 configuration.setAllowedOriginPatterns(Arrays.asList(
                                 "http://localhost:5173",
                                 "http://localhost:3000",
+                                "https://financetracker-frontend-f9cy.onrender.com",
                                 "https://*.onrender.com"
                 ));
                 configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
