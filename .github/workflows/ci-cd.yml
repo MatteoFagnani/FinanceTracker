@@ -2,53 +2,48 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
   pull_request:
-    branches: [ main ]
+    branches: [ master ]
 
 jobs:
-  # Backend Job: Build and Test
   backend-ci:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
           cache: 'maven'
-
-      - name: Build with Maven
+      - name: Build and Test
         run: |
           cd backend
-          mvn -B clean package -DskipTests
+          mvn -B clean package
 
-      - name: Run Tests
-        run: |
-          cd backend
-          mvn -B test
-
-  # Frontend Job: Build check
   frontend-ci:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
-
-      - name: Install dependencies
-        run: |
-          cd frontend
-          npm ci
-
       - name: Build check
         run: |
           cd frontend
+          npm ci
           npm run build
+
+  deploy:
+    name: Deploy to Render
+    needs: [backend-ci, frontend-ci] # Parte SOLO se i due job sopra finiscono con successo
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render Deploy
+        run: |
+          curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
