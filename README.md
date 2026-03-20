@@ -1,5 +1,9 @@
 # FinanceTracker
 
+[![Deploy Status](https://img.shields.io/badge/Deploy-Live-success)](https://financetracker-frontend-f9cy.onrender.com/)
+
+**Link dell'applicazione live:** [https://financetracker-frontend-f9cy.onrender.com/](https://financetracker-frontend-f9cy.onrender.com/)
+
 Un'applicazione web completa per la gestione delle finanze personali, con tracciamento di entrate e uscite, gestione budget e report dettagliati.
 
 ## Panoramica
@@ -151,6 +155,8 @@ FinanceTracker/
 - Autenticazione basata su JSON Web Token (JWT)
 - Role-based access control (RBAC) con Spring Security
 - Password hashing sicuro (BCrypt) e **cambio password con verifica vecchia password**
+- **Protezione Anti Brute Force**: blocco temporaneo dell'account (15 minuti) dopo 5 tentativi di login falliti consecutivi.
+- **Miglioramento UX/Sicurezza**: pulizia automatica del campo password nel frontend a ogni tentativo di accesso errato.
 - **Cancellazione sicura dell'account** con eliminazione a cascata di tutti i dati associati
 - Gestione sicura delle sessioni stateless
 
