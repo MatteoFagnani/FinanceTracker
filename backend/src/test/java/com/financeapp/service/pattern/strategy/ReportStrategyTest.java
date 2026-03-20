@@ -87,7 +87,7 @@ class ReportStrategyTest {
         ReportDto report = categoryReportStrategy.generateReport(testUser, start, end);
 
         assertNotNull(report);
-        assertEquals(2000.0, report.getDataPoints().get("Salary"));
         assertEquals(500.0, report.getDataPoints().get("Rent"));
+        assertEquals(1, report.getDataPoints().size());
     }
 }
