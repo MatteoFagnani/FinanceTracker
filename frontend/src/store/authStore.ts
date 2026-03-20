@@ -13,8 +13,17 @@ interface AuthState {
 const storedUser = localStorage.getItem('user');
 const storedToken = localStorage.getItem('token');
 
+let initialUser = null;
+if (storedUser && storedUser !== 'undefined') {
+    try {
+        initialUser = JSON.parse(storedUser);
+    } catch (e) {
+        console.error("Failed to parse user from localStorage", e);
+    }
+}
+
 export const useAuthStore = create<AuthState>((set) => ({
-    user: storedUser ? JSON.parse(storedUser) : null,
+    user: initialUser,
     token: storedToken || null,
     isAuthenticated: !!storedToken,
     setAuth: (user, token) => {
