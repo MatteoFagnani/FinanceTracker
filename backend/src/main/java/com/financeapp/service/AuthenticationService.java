@@ -41,7 +41,7 @@ public class AuthenticationService {
                 .build();
 
         var savedUser = repository.save(user);
-        
+
         // Seed default categories for the new user
         categoryService.seedDefaultCategories(savedUser);
 
@@ -54,12 +54,42 @@ public class AuthenticationService {
     }
 
     public AuthResponse authenticate(LoginRequest request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getUsername(),
-                        request.getPassword()));
-        var user = repository.findByUsername(request.getUsername())
-                .orElseThrow();
+        var userOptional = repository.findByUsername(request.getUsername());
+        if (userOptional.isPresent()) {
+            var user = userOptional.get();
+            if (user.getAccountLockedUntil() != null
+                    && user.getAccountLockedUntil().isBefore(java.time.LocalDateTime.now())) {
+                user.setAccountLockedUntil(null);
+                user.setFailedLoginAttempts(0);
+                repository.save(user);
+            }
+        }
+
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getUsername(),
+                            request.getPassword()));
+        } catch (org.springframework.security.authentication.BadCredentialsException ex) {
+            if (userOptional.isPresent()) {
+                var user = userOptional.get();
+                int currentAttempts = user.getFailedLoginAttempts() == null ? 0 : user.getFailedLoginAttempts();
+                user.setFailedLoginAttempts(currentAttempts + 1);
+                if (user.getFailedLoginAttempts() >= 5) {
+                    user.setAccountLockedUntil(java.time.LocalDateTime.now().plusMinutes(15));
+                    repository.save(user);
+                    throw new org.springframework.security.authentication.LockedException(
+                            "Troppi tentativi falliti. Riprova tra 15 minuti.");
+                }
+                repository.save(user);
+            }
+            throw ex;
+        }
+
+        var user = repository.findByUsername(request.getUsername()).orElseThrow();
+        user.setFailedLoginAttempts(0);
+        user.setAccountLockedUntil(null);
+        repository.save(user);
 
         var jwtToken = jwtService.generateToken(user);
 

@@ -47,6 +47,12 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AutomationRule> automationRules;
 
+    @Column(name = "failed_login_attempts")
+    private Integer failedLoginAttempts;
+
+    @Column(name = "account_locked_until")
+    private java.time.LocalDateTime accountLockedUntil;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
@@ -59,7 +65,10 @@ public class User implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        if (accountLockedUntil == null) {
+            return true;
+        }
+        return accountLockedUntil.isBefore(java.time.LocalDateTime.now());
     }
 
     @Override

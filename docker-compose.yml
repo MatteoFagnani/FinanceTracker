@@ -20,7 +20,7 @@ services:
     build: ./backend
     container_name: financetracker_backend
     ports:
-      - "8080:8080"
+      - "10000:10000"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/financetracker
       SPRING_DATASOURCE_USERNAME: finance_user

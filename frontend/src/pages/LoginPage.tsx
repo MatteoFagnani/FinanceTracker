@@ -25,6 +25,7 @@ export default function LoginPage() {
         } catch (err: unknown) {
             const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
             setError(msg || 'Credenziali non valide. Riprova.');
+            setPassword('');
         } finally {
             setLoading(false);
         }

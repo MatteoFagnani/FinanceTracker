@@ -63,4 +63,17 @@ public class GlobalExceptionHandler {
         ex.printStackTrace(); // Log the stack trace
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
+
+    @ExceptionHandler(org.springframework.security.authentication.LockedException.class)
+    public ResponseEntity<Map<String, String>> handleLockedException(
+            org.springframework.security.authentication.LockedException ex) {
+        Map<String, String> error = new HashMap<>();
+        // Use the exception message specifically if it's our custom one, or default to
+        // a safe message
+        String msg = ex.getMessage() != null && !ex.getMessage().equals("User account is locked")
+                ? ex.getMessage()
+                : "Troppi tentativi falliti. Riprova tra 15 minuti.";
+        error.put("error", msg);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+    }
 }
