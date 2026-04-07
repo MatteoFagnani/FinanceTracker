@@ -55,13 +55,21 @@ public class AuthenticationService {
 
     public AuthResponse authenticate(LoginRequest request) {
         var userOptional = repository.findByUsername(request.getUsername());
+
+        // 1. Proactive Lock Check
         if (userOptional.isPresent()) {
             var user = userOptional.get();
-            if (user.getAccountLockedUntil() != null
-                    && user.getAccountLockedUntil().isBefore(java.time.LocalDateTime.now())) {
-                user.setAccountLockedUntil(null);
-                user.setFailedLoginAttempts(0);
-                repository.save(user);
+            if (user.getAccountLockedUntil() != null) {
+                if (user.getAccountLockedUntil().isBefore(java.time.LocalDateTime.now())) {
+                    // Lock expired, reset it
+                    user.setAccountLockedUntil(null);
+                    user.setFailedLoginAttempts(0);
+                    repository.save(user);
+                } else {
+                    // Account is STILL LOCKED
+                    throw new org.springframework.security.authentication.LockedException(
+                            "Troppi tentativi falliti. Riprova tra 15 minuti.");
+                }
             }
         }
 
@@ -73,13 +81,16 @@ public class AuthenticationService {
         } catch (org.springframework.security.authentication.BadCredentialsException ex) {
             if (userOptional.isPresent()) {
                 var user = userOptional.get();
-                int currentAttempts = user.getFailedLoginAttempts() == null ? 0 : user.getFailedLoginAttempts();
-                user.setFailedLoginAttempts(currentAttempts + 1);
-                if (user.getFailedLoginAttempts() >= 5) {
+                // Since we handled existing lock above, we just increment attempts here
+                int currentAttempts = (user.getFailedLoginAttempts() == null) ? 0 : user.getFailedLoginAttempts();
+                int newAttempts = currentAttempts + 1;
+                user.setFailedLoginAttempts(newAttempts);
+
+                if (newAttempts >= 5) {
                     user.setAccountLockedUntil(java.time.LocalDateTime.now().plusMinutes(15));
                     repository.save(user);
                     throw new org.springframework.security.authentication.LockedException(
-                            "Troppi tentativi falliti. Riprova tra 15 minuti.");
+                            "Troppi tentativi falliti. L'account è stato bloccato per 15 minuti.");
                 }
                 repository.save(user);
             }
