@@ -19,7 +19,7 @@ export default function RegisterPage() {
 
         try {
             const response = await authService.register(form.username, form.email, form.password);
-            setAuth(response.user, response.token);
+            setAuth(response.user);
             navigate('/');
         } catch (err: unknown) {
             const data = (err as { response?: { data?: Record<string, string> } })?.response?.data;

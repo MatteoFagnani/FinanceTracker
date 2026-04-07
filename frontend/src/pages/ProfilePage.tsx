@@ -34,8 +34,7 @@ export default function ProfilePage() {
         try {
             const response = await api.put('/users/profile', profileForm);
             const updatedUser = response.data;
-            const token = localStorage.getItem('token') || '';
-            setAuth(updatedUser, token);
+            setAuth(updatedUser);
             setProfileStatus({ type: 'success', message: 'Profilo aggiornato con successo!' });
         } catch (err: any) {
             setProfileStatus({

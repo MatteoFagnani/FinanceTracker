@@ -20,7 +20,7 @@ export default function LoginPage() {
 
         try {
             const response = await authService.login(username, password);
-            setAuth(response.user, response.token);
+            setAuth(response.user);
             navigate('/');
         } catch (err: unknown) {
             const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;

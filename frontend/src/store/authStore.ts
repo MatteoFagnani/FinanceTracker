@@ -1,17 +1,16 @@
 import { create } from 'zustand';
 import type { User } from '../types';
+import api from '../services/api';
 
 interface AuthState {
     user: User | null;
-    token: string | null;
     isAuthenticated: boolean;
-    setAuth: (user: User, token: string) => void;
-    logout: () => void;
+    setAuth: (user: User) => void;
+    logout: () => Promise<void>;
 }
 
 // Load from localStorage for persistence
 const storedUser = localStorage.getItem('user');
-const storedToken = localStorage.getItem('token');
 
 let initialUser = null;
 if (storedUser && storedUser !== 'undefined') {
@@ -24,16 +23,20 @@ if (storedUser && storedUser !== 'undefined') {
 
 export const useAuthStore = create<AuthState>((set) => ({
     user: initialUser,
-    token: storedToken || null,
-    isAuthenticated: !!storedToken,
-    setAuth: (user, token) => {
+    isAuthenticated: !!initialUser,
+    setAuth: (user) => {
         localStorage.setItem('user', JSON.stringify(user));
-        localStorage.setItem('token', token);
-        set({ user, token, isAuthenticated: true });
+        set({ user, isAuthenticated: true });
     },
-    logout: () => {
-        localStorage.removeItem('user');
-        localStorage.removeItem('token');
-        set({ user: null, token: null, isAuthenticated: false });
+    logout: async () => {
+        try {
+            await api.post('/auth/logout');
+        } catch (error) {
+            console.error('Logout failed', error);
+        } finally {
+            localStorage.removeItem('user');
+            set({ user: null, isAuthenticated: false });
+            window.location.href = '/login';
+        }
     },
 }));
