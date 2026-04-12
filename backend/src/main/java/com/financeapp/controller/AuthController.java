@@ -23,10 +23,10 @@ public class AuthController {
 
     private final AuthenticationService service;
 
-    private void setJwtCookie(HttpServletResponse response, String token) {
+    private void setJwtCookie(HttpServletRequest request, HttpServletResponse response, String token) {
         ResponseCookie cookie = ResponseCookie.from("jwt", token)
                 .httpOnly(true)
-                .secure(true) // Should be true in production, works on localhost in modern browsers
+                .secure(isSecureRequest(request))
                 .path("/")
                 .maxAge(7 * 24 * 60 * 60) // 7 days
                 .sameSite("Lax") // Helps with CSRF while allowing API usage
@@ -37,9 +37,10 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(
             @Valid @RequestBody RegisterRequest request,
+            HttpServletRequest httpRequest,
             HttpServletResponse response) {
         AuthResponse authResponse = service.register(request);
-        setJwtCookie(response, authResponse.getToken());
+        setJwtCookie(httpRequest, response, authResponse.getToken());
         // Do not send token in body to prevent any storage by mistake
         authResponse.setToken(null);
         return ResponseEntity.ok(authResponse);
@@ -51,17 +52,17 @@ public class AuthController {
             HttpServletRequest httpRequest,
             HttpServletResponse response) {
         AuthResponse authResponse = service.authenticate(request, extractClientIp(httpRequest));
-        setJwtCookie(response, authResponse.getToken());
+        setJwtCookie(httpRequest, response, authResponse.getToken());
         // Do not send token in body to prevent any storage by mistake
         authResponse.setToken(null);
         return ResponseEntity.ok(authResponse);
     }
     
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(HttpServletResponse response) {
+    public ResponseEntity<Void> logout(HttpServletRequest request, HttpServletResponse response) {
         ResponseCookie cookie = ResponseCookie.from("jwt", "")
                 .httpOnly(true)
-                .secure(true)
+                .secure(isSecureRequest(request))
                 .path("/")
                 .maxAge(0) // Expire immediately
                 .sameSite("Lax")
@@ -82,5 +83,13 @@ public class AuthController {
         }
 
         return request.getRemoteAddr();
+    }
+
+    private boolean isSecureRequest(HttpServletRequest request) {
+        String forwardedProto = request.getHeader("X-Forwarded-Proto");
+        if (forwardedProto != null && !forwardedProto.isBlank()) {
+            return "https".equalsIgnoreCase(forwardedProto);
+        }
+        return request.isSecure();
     }
 }

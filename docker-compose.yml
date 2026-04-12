@@ -36,7 +36,7 @@ services:
     build:
       context: ./frontend
       args:
-        - VITE_API_URL=${VITE_API_URL}
+        - VITE_API_URL=/api/v1
     container_name: financetracker_frontend
     ports:
       - "3000:80"
