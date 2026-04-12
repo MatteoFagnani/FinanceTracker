@@ -1,5 +1,6 @@
 package com.financeapp.exception;
 
+import com.financeapp.security.AuthErrorMessages;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -38,7 +39,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<Map<String, String>> handleBadCredentialsException(BadCredentialsException ex) {
         Map<String, String> error = new HashMap<>();
-        error.put("error", "Username o password non validi");
+        error.put("error", AuthErrorMessages.GENERIC_AUTH_ERROR);
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
 
@@ -69,12 +70,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleLockedException(
             org.springframework.security.authentication.LockedException ex) {
         Map<String, String> error = new HashMap<>();
-        // Use the exception message specifically if it's our custom one, or default to
-        // a safe message
-        String msg = ex.getMessage() != null && !ex.getMessage().equals("User account is locked")
-                ? ex.getMessage()
-                : "Troppi tentativi falliti. Riprova tra 15 minuti.";
-        error.put("error", msg);
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+        error.put("error", AuthErrorMessages.GENERIC_AUTH_ERROR);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
 }

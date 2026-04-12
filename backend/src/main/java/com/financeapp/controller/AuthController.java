@@ -4,6 +4,7 @@ import com.financeapp.dto.AuthResponse;
 import com.financeapp.dto.LoginRequest;
 import com.financeapp.dto.RegisterRequest;
 import com.financeapp.service.AuthenticationService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
@@ -47,8 +48,9 @@ public class AuthController {
     @PostMapping("/authenticate")
     public ResponseEntity<AuthResponse> authenticate(
             @Valid @RequestBody LoginRequest request,
+            HttpServletRequest httpRequest,
             HttpServletResponse response) {
-        AuthResponse authResponse = service.authenticate(request);
+        AuthResponse authResponse = service.authenticate(request, extractClientIp(httpRequest));
         setJwtCookie(response, authResponse.getToken());
         // Do not send token in body to prevent any storage by mistake
         authResponse.setToken(null);
@@ -66,5 +68,19 @@ public class AuthController {
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
         return ResponseEntity.ok().build();
+    }
+
+    private String extractClientIp(HttpServletRequest request) {
+        String forwardedFor = request.getHeader("X-Forwarded-For");
+        if (forwardedFor != null && !forwardedFor.isBlank()) {
+            return forwardedFor.split(",")[0].trim();
+        }
+
+        String realIp = request.getHeader("X-Real-IP");
+        if (realIp != null && !realIp.isBlank()) {
+            return realIp.trim();
+        }
+
+        return request.getRemoteAddr();
     }
 }
