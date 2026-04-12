@@ -13,7 +13,12 @@ const api = axios.create({
 api.interceptors.response.use(
     (response) => response,
     (error) => {
-        if (error.response?.status === 401) {
+        const status = error.response?.status;
+        const requestUrl = String(error.config?.url || '');
+        const isAuthRequest = requestUrl.includes('/auth/authenticate') || requestUrl.includes('/auth/register');
+        const isPublicAuthPage = window.location.pathname === '/login' || window.location.pathname === '/register';
+
+        if (status === 401 && !isAuthRequest && !isPublicAuthPage) {
             localStorage.removeItem('user');
             window.location.href = '/login';
         }

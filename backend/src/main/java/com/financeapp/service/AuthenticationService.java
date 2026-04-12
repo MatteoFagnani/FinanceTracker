@@ -17,16 +17,10 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
 public class AuthenticationService {
-
-    private static final int MAX_FAILED_ATTEMPTS = 5;
-    private static final long ACCOUNT_LOCK_MINUTES = 15;
 
     private final UserRepository repository;
     private final PasswordEncoder passwordEncoder;
@@ -35,6 +29,7 @@ public class AuthenticationService {
     private final UserMapper userMapper;
     private final CategoryService categoryService;
     private final LoginAttemptService loginAttemptService;
+    private final AuthenticationAttemptPersistenceService authenticationAttemptPersistenceService;
 
     public AuthResponse register(RegisterRequest request) {
         if (repository.existsByUsername(request.getUsername())) {
@@ -62,7 +57,6 @@ public class AuthenticationService {
                 .build();
     }
 
-    @Transactional
     public AuthResponse authenticate(LoginRequest request, String clientIp) {
         String username = request.getUsername();
 
@@ -70,18 +64,12 @@ public class AuthenticationService {
             throw invalidCredentials();
         }
 
-        var userOptional = repository.findWithLockByUsername(username);
+        var userOptional = authenticationAttemptPersistenceService.getUserForAuthentication(username);
 
         if (userOptional.isPresent()) {
             var user = userOptional.get();
             if (user.getAccountLockedUntil() != null) {
-                if (user.getAccountLockedUntil().isBefore(LocalDateTime.now())) {
-                    user.setAccountLockedUntil(null);
-                    user.setFailedLoginAttempts(0);
-                    repository.save(user);
-                } else {
-                    throw invalidCredentials();
-                }
+                throw invalidCredentials();
             }
         }
 
@@ -90,7 +78,7 @@ public class AuthenticationService {
                     new UsernamePasswordAuthenticationToken(username, request.getPassword()));
         } catch (BadCredentialsException ex) {
             loginAttemptService.recordFailure(clientIp, username);
-            userOptional.ifPresent(this::registerFailedAttempt);
+            authenticationAttemptPersistenceService.recordFailedAttempt(username);
             throw invalidCredentials();
         } catch (LockedException ex) {
             throw invalidCredentials();
@@ -100,10 +88,9 @@ public class AuthenticationService {
 
         loginAttemptService.recordSuccess(clientIp, username);
 
-        var user = userOptional.orElseGet(() -> repository.findWithLockByUsername(username).orElseThrow());
-        user.setFailedLoginAttempts(0);
-        user.setAccountLockedUntil(null);
-        repository.save(user);
+        var user = authenticationAttemptPersistenceService
+                .resetSuccessfulLogin(username)
+                .orElseGet(() -> repository.findByUsername(username).orElseThrow());
 
         var jwtToken = jwtService.generateToken(user);
 
@@ -111,18 +98,6 @@ public class AuthenticationService {
                 .token(jwtToken)
                 .user(userMapper.toDto(user))
                 .build();
-    }
-
-    private void registerFailedAttempt(User user) {
-        int currentAttempts = user.getFailedLoginAttempts() == null ? 0 : user.getFailedLoginAttempts();
-        int newAttempts = currentAttempts + 1;
-        user.setFailedLoginAttempts(newAttempts);
-
-        if (newAttempts >= MAX_FAILED_ATTEMPTS) {
-            user.setAccountLockedUntil(LocalDateTime.now().plusMinutes(ACCOUNT_LOCK_MINUTES));
-        }
-
-        repository.save(user);
     }
 
     private BadCredentialsException invalidCredentials() {

@@ -46,6 +46,8 @@ class AuthenticationServiceTest {
     private UserMapper userMapper;
     @Mock
     private CategoryService categoryService;
+    @Mock
+    private AuthenticationAttemptPersistenceService authenticationAttemptPersistenceService;
 
     private LoginAttemptService loginAttemptService;
     private AuthenticationService authenticationService;
@@ -60,7 +62,8 @@ class AuthenticationServiceTest {
                 authenticationManager,
                 userMapper,
                 categoryService,
-                loginAttemptService
+                loginAttemptService,
+                authenticationAttemptPersistenceService
         );
     }
 
@@ -69,16 +72,14 @@ class AuthenticationServiceTest {
         LoginRequest request = loginRequest("mario", "wrong-password");
         User user = userWithAttempts(4, null);
 
-        when(repository.findWithLockByUsername("mario")).thenReturn(Optional.of(user));
+        when(authenticationAttemptPersistenceService.getUserForAuthentication("mario")).thenReturn(Optional.of(user));
         doThrow(new BadCredentialsException("bad")).when(authenticationManager)
                 .authenticate(any(UsernamePasswordAuthenticationToken.class));
 
         assertThrows(BadCredentialsException.class,
                 () -> authenticationService.authenticate(request, "10.0.0.1"));
 
-        assertEquals(5, user.getFailedLoginAttempts());
-        assertNotNull(user.getAccountLockedUntil());
-        verify(repository).save(user);
+        verify(authenticationAttemptPersistenceService).recordFailedAttempt("mario");
     }
 
     @Test
@@ -86,7 +87,7 @@ class AuthenticationServiceTest {
         LoginRequest request = loginRequest("mario", "wrong-password");
         User user = userWithAttempts(5, LocalDateTime.now().plusMinutes(10));
 
-        when(repository.findWithLockByUsername("mario")).thenReturn(Optional.of(user));
+        when(authenticationAttemptPersistenceService.getUserForAuthentication("mario")).thenReturn(Optional.of(user));
 
         BadCredentialsException ex = assertThrows(BadCredentialsException.class,
                 () -> authenticationService.authenticate(request, "10.0.0.1"));
@@ -97,7 +98,7 @@ class AuthenticationServiceTest {
 
     @Test
     void authenticateBlocksIpAfterTooManyFailures() {
-        when(repository.findWithLockByUsername(any())).thenReturn(Optional.empty());
+        when(authenticationAttemptPersistenceService.getUserForAuthentication(any())).thenReturn(Optional.empty());
         doThrow(new BadCredentialsException("bad")).when(authenticationManager)
                 .authenticate(any(UsernamePasswordAuthenticationToken.class));
 
@@ -120,14 +121,14 @@ class AuthenticationServiceTest {
         User user = userWithAttempts(3, null);
         UserDto userDto = UserDto.builder().id(1L).username("mario").email("mario@test.com").role(Role.USER).build();
 
-        when(repository.findWithLockByUsername("mario")).thenReturn(Optional.of(user));
+        when(authenticationAttemptPersistenceService.getUserForAuthentication("mario")).thenReturn(Optional.of(user));
+        when(authenticationAttemptPersistenceService.resetSuccessfulLogin("mario")).thenReturn(Optional.of(user));
         when(jwtService.generateToken(user)).thenReturn("jwt-token");
         when(userMapper.toDto(user)).thenReturn(userDto);
 
         AuthResponse response = authenticationService.authenticate(request, "10.0.0.1");
 
-        assertEquals(0, user.getFailedLoginAttempts());
-        assertNull(user.getAccountLockedUntil());
+        verify(authenticationAttemptPersistenceService).resetSuccessfulLogin("mario");
         assertEquals("jwt-token", response.getToken());
         assertEquals(userDto, response.getUser());
     }
